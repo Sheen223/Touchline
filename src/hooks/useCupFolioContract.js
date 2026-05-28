@@ -13,6 +13,10 @@ const CONTRACT_ABI = [
   "function getUpsetProbability(address poolAddress) view returns (uint8)",
 ];
 
+// Track which pools have been registered (in-memory cache)
+const registeredPoolsCache = new Set();
+
+// Team mapping
 const teamPoolMap = {
   'Brazil': { address: '0x0000000000000000000000000000000000000001', groupId: 3, teamA: 'Brazil', teamB: 'Opponent' },
   'Morocco': { address: '0x0000000000000000000000000000000000000002', groupId: 3, teamA: 'Morocco', teamB: 'Opponent' },
@@ -28,16 +32,12 @@ const teamPoolMap = {
   'Haiti': { address: '0x0000000000000000000000000000000000000012', groupId: 1, teamA: 'Haiti', teamB: 'Opponent' },
 };
 
-// Track which pools have been registered
-const registeredPools = new Set();
-
 export const useCupFolioContract = () => {
   const [contract, setContract] = useState(null);
   const [aiAgent, setAiAgent] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Initialize contract
   useEffect(() => {
     const init = async () => {
       try {
@@ -59,37 +59,27 @@ export const useCupFolioContract = () => {
     init();
   }, []);
 
-  // Register a pool before updating
-  const registerPool = async (team) => {
-    const walletProvider = window.okxwallet || window.ethereum;
-    if (!walletProvider) {
-      throw new Error("No wallet detected");
-    }
-    
+  // Register pool only if not already registered
+  const ensurePoolRegistered = async (team, walletProvider) => {
     const teamData = teamPoolMap[team];
     if (!teamData) {
       throw new Error(`Unknown team: ${team}`);
     }
     
-    // Check if already registered
-    if (registeredPools.has(team)) {
-      console.log(`Pool for ${team} already registered`);
+    // Check cache first
+    if (registeredPoolsCache.has(team)) {
+      console.log(`✅ Pool for ${team} already registered (cached)`);
       return true;
     }
     
     try {
-      const accounts = await walletProvider.request({ method: 'eth_requestAccounts' });
-      if (!accounts || accounts.length === 0) {
-        throw new Error("No accounts found");
-      }
-      
       const provider = new ethers.BrowserProvider(walletProvider);
       const signer = await provider.getSigner();
       const contractWithSigner = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
       
-      const poolId = ethers.id(`${team}_pool`);
+      const poolId = ethers.id(`${team}_pool_2026`);
       
-      console.log(`Registering pool for ${team}...`);
+      console.log(`📝 Registering pool for ${team}...`);
       const tx = await contractWithSigner.registerPool(
         poolId,
         teamData.address,
@@ -99,12 +89,18 @@ export const useCupFolioContract = () => {
       );
       await tx.wait();
       
-      registeredPools.add(team);
-      console.log(`✅ Pool for ${team} registered successfully`);
+      // Add to cache
+      registeredPoolsCache.add(team);
+      console.log(`✅ Pool for ${team} registered successfully!`);
       return true;
     } catch (err) {
-      console.error(`Failed to register pool for ${team}:`, err);
-      throw new Error(`Failed to register pool: ${err.message}`);
+      // If error says "Pool already registered", add to cache and continue
+      if (err.message.includes("Pool already registered") || err.reason === "Pool already registered") {
+        console.log(`⚠️ Pool for ${team} was already registered on-chain`);
+        registeredPoolsCache.add(team);
+        return true;
+      }
+      throw err;
     }
   };
 
@@ -145,8 +141,8 @@ export const useCupFolioContract = () => {
     }
     
     try {
-      // First, ensure the pool is registered
-      await registerPool(team);
+      // Ensure pool is registered (checks cache first, only registers once)
+      await ensurePoolRegistered(team, walletProvider);
       
       const accounts = await walletProvider.request({ method: 'eth_accounts' });
       if (!accounts || accounts.length === 0) {
@@ -166,11 +162,11 @@ export const useCupFolioContract = () => {
       }
       
       setIsLoading(true);
-      console.log(`Updating ${team} probability to ${probability}%...`);
+      console.log(`📡 Updating ${team} probability to ${probability}%...`);
       const tx = await contractWithSigner.updateUpsetProbability(teamData.address, probability);
       const receipt = await tx.wait();
       
-      console.log(`✅ ${team} probability updated!`);
+      console.log(`✅ ${team} probability updated to ${probability}%!`);
       return { hash: tx.hash, block: receipt.blockNumber };
     } catch (err) {
       console.error("Update error:", err);
@@ -190,6 +186,5 @@ export const useCupFolioContract = () => {
     error,
     setAIAgent,
     updateProbability,
-    registerPool,
   };
 };

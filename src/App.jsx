@@ -305,19 +305,47 @@ const AgentTerminal = ({ onUpdateProbability, isContractReady, isAgentSet }) => 
     setLogs((prev) => [{ id: Date.now(), message, type, timestamp: new Date().toLocaleTimeString() }, ...prev].slice(0, 20));
   };
 
-  const runAgentCycle = async () => {
-    if (!isContractReady) {
-      addLog('❌ Contract not ready. Please wait and try again.', 'error');
-      return;
-    }
-    if (!isAgentSet) {
-      addLog('❌ AI Agent not set. Please set your wallet as AI Agent first.', 'error');
-      return;
+  // Update the runAgentCycle function in AgentTerminal (inside App.jsx)
+
+const runAgentCycle = async () => {
+  if (!isContractReady) {
+    addLog('❌ Contract not ready. Please wait and try again.', 'error');
+    return;
+  }
+
+  if (!isAgentSet) {
+    addLog('❌ AI Agent not set. Please set your wallet as AI Agent first.', 'error');
+    return;
+  }
+
+  setIsRunning(true);
+  addLog('🤖 AI Agent initializing...', 'info');
+  addLog('🔗 Connected to X Layer Mainnet', 'info');
+
+  for (const match of matches) {
+    setSelectedMatch(match);
+    addLog(`📊 Analyzing: ${match.teamA} vs ${match.teamB}`, 'info');
+    await new Promise((r) => setTimeout(r, 1000));
+
+    addLog(`⚠️ UPSET DETECTED: ${match.teamA} lost to ${match.teamB}`, 'alert');
+    addLog(`📈 ${match.teamB} qualification probability increased to ${match.probability}%`, 'change');
+
+    try {
+      addLog(`🔄 Updating probability for ${match.teamB} on X Layer...`, 'action');
+      const tx = await onUpdateProbability(match.teamB, match.probability);
+      addLog(`✅ ${match.teamB} probability updated! TX: ${tx.hash.slice(0, 10)}...`, 'success');
+    } catch (error) {
+      addLog(`❌ Transaction failed: ${error.message}`, 'error');
     }
 
-    setIsRunning(true);
-    addLog('🤖 AI Agent initializing...', 'info');
-    addLog('🔗 Connected to X Layer Mainnet', 'info');
+    await new Promise((r) => setTimeout(r, 500));
+  }
+
+  addLog('💰 Idle capital deployed to yield strategy (8% APY)', 'yield');
+  addLog('✅ Agent cycle complete. Portfolio rebalanced successfully.', 'success');
+  setIsRunning(false);
+  setSelectedMatch(null);
+};
 
     for (const match of matches) {
       setSelectedMatch(match);
