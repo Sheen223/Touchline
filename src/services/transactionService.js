@@ -18,13 +18,18 @@ export const getRealTransactionHistory = async (walletAddress) => {
     
     // Get current block number
     const currentBlock = await provider.getBlockNumber();
-    const fromBlock = currentBlock - 10000; // Last 10,000 blocks
+    // Look back further - from block 0 to current
+    const fromBlock = 0; // Start from genesis to catch all transactions
     
     const transactions = [];
+    
+    console.log(`🔍 Fetching transactions from block ${fromBlock} to ${currentBlock}...`);
     
     // Get AI Agent Set events
     try {
       const agentEvents = await contract.queryFilter('AIAgentSet', fromBlock, currentBlock);
+      console.log(`Found ${agentEvents.length} AI Agent Set events`);
+      
       for (const event of agentEvents) {
         const block = await provider.getBlock(event.blockNumber);
         transactions.push({
@@ -37,12 +42,14 @@ export const getRealTransactionHistory = async (walletAddress) => {
         });
       }
     } catch (err) {
-      console.log("No AI Agent events found");
+      console.log("Error fetching AI Agent events:", err.message);
     }
     
     // Get Upset Probability Updated events
     try {
       const probabilityEvents = await contract.queryFilter('UpsetProbabilityUpdated', fromBlock, currentBlock);
+      console.log(`Found ${probabilityEvents.length} Probability Update events`);
+      
       for (const event of probabilityEvents) {
         const block = await provider.getBlock(event.blockNumber);
         transactions.push({
@@ -55,12 +62,13 @@ export const getRealTransactionHistory = async (walletAddress) => {
         });
       }
     } catch (err) {
-      console.log("No Probability events found");
+      console.log("Error fetching Probability events:", err.message);
     }
     
     // Sort by block number descending (newest first)
     transactions.sort((a, b) => b.blockNumber - a.blockNumber);
     
+    console.log(`✅ Total transactions found: ${transactions.length}`);
     return transactions;
     
   } catch (error) {
