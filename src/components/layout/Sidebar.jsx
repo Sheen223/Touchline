@@ -1,4 +1,4 @@
-// src/components/layout/Sidebar.jsx (Updated with balance)
+// src/components/layout/Sidebar.jsx
 import React, { useState } from 'react';
 import { 
   LayoutDashboard, 
@@ -17,16 +17,17 @@ import { useWallet } from '../../context/WalletContext';
 
 const navigation = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, section: 'dashboard' },
-  { id: 'portfolio', name: 'Portfolio', icon: TrendingUp, section: 'portfolio', badge: '8 active' },
+  { id: 'portfolio', name: 'Portfolio', icon: TrendingUp, section: 'portfolio' },
   { id: 'transactions', name: 'Transactions', icon: Wallet, section: 'transactions' },
 ];
 
-export const Sidebar = ({ activeSection, onNavigate }) => {
+export const Sidebar = () => {
   const { address, balance, disconnect } = useWallet();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [activeSection, setActiveSection] = useState('dashboard');
 
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
   const toggleMobile = () => setIsMobileOpen(!isMobileOpen);
@@ -35,6 +36,15 @@ export const Sidebar = ({ activeSection, onNavigate }) => {
     navigator.clipboard.writeText(address);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleNavigation = (sectionId) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    setIsMobileOpen(false);
   };
 
   const shortAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
@@ -86,7 +96,7 @@ export const Sidebar = ({ activeSection, onNavigate }) => {
           {navigation.map((item) => (
             <button
               key={item.id}
-              onClick={() => onNavigate(item.section)}
+              onClick={() => handleNavigation(item.section)}
               onMouseEnter={() => setHoveredItem(item.name)}
               onMouseLeave={() => setHoveredItem(null)}
               className={`
@@ -107,18 +117,12 @@ export const Sidebar = ({ activeSection, onNavigate }) => {
               {!isCollapsed && (
                 <>
                   <span className="flex-1 text-left">{item.name}</span>
-                  {item.badge && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400">
-                      {item.badge}
-                    </span>
-                  )}
                 </>
               )}
               
               {isCollapsed && hoveredItem === item.name && (
                 <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 rounded-lg text-xs text-white whitespace-nowrap z-50 border border-white/10">
                   {item.name}
-                  {item.badge && ` (${item.badge})`}
                 </div>
               )}
             </button>

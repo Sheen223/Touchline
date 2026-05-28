@@ -30,14 +30,14 @@ export const getRealTransactionHistory = async (walletAddress) => {
         transactions.push({
           hash: event.transactionHash,
           type: 'ai_agent_set',
-          description: `AI Agent set to: ${event.args.agent}`,
+          description: `AI Agent set to: ${event.args.agent.slice(0, 10)}...${event.args.agent.slice(-8)}`,
           timestamp: block?.timestamp,
           blockNumber: event.blockNumber,
           status: 'confirmed'
         });
       }
     } catch (err) {
-      console.log("No AI Agent events found yet");
+      console.log("No AI Agent events found");
     }
     
     // Get Upset Probability Updated events
@@ -55,13 +55,12 @@ export const getRealTransactionHistory = async (walletAddress) => {
         });
       }
     } catch (err) {
-      console.log("No Probability events found yet");
+      console.log("No Probability events found");
     }
     
     // Sort by block number descending (newest first)
     transactions.sort((a, b) => b.blockNumber - a.blockNumber);
     
-    console.log(`Found ${transactions.length} transactions`);
     return transactions;
     
   } catch (error) {

@@ -1,53 +1,26 @@
 // src/components/sections/TransactionsSection.jsx
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../../context/WalletContext';
-import { ExternalLink, RefreshCw, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { ExternalLink, RefreshCw, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { getRealTransactionHistory } from '../../services/transactionService';
 
 export const TransactionsSection = () => {
   const { address } = useWallet();
   const [transactions, setTransactions] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchTransactions = async () => {
     if (!address) {
       setTransactions([]);
-      setIsLoading(false);
       return;
     }
     
     setIsLoading(true);
     try {
-      // Fetch from your local transaction service or directly from provider
-      const response = await fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${address}&sort=desc`);
-      // Note: This is a placeholder - you'll need to use X Layer's explorer API
-      
-      // For now, let's create mock transactions based on what we know happened
-      const mockTransactions = [
-        {
-          hash: "0xb203ed84140...",
-          type: "contract_deployment",
-          description: "CupFolio Hook Contract Deployed",
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          status: "confirmed"
-        },
-        {
-          hash: "0x8f3a2b1c...",
-          type: "ai_agent_set",
-          description: "AI Agent Wallet Configured",
-          timestamp: new Date(Date.now() - 1800000).toISOString(),
-          status: "confirmed"
-        },
-        {
-          hash: "0x7e2d4f8a...",
-          type: "pool_registered",
-          description: "Team Pool Registered (Brazil, Morocco, Senegal, etc.)",
-          timestamp: new Date(Date.now() - 900000).toISOString(),
-          status: "confirmed"
-        }
-      ];
-      
-      setTransactions(mockTransactions);
+      // Fetch REAL transactions from the blockchain
+      const realTxs = await getRealTransactionHistory(address);
+      setTransactions(realTxs);
     } catch (error) {
       console.error("Failed to fetch transactions:", error);
       setTransactions([]);
@@ -57,7 +30,11 @@ export const TransactionsSection = () => {
   };
 
   useEffect(() => {
-    fetchTransactions();
+    if (address) {
+      fetchTransactions();
+    } else {
+      setTransactions([]);
+    }
   }, [address]);
 
   const refresh = async () => {
@@ -66,22 +43,23 @@ export const TransactionsSection = () => {
     setRefreshing(false);
   };
 
+  const formatTime = (timestamp) => {
+    if (!timestamp) return 'Pending';
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleString();
+  };
+
   const getTransactionIcon = (type) => {
     switch (type) {
-      case 'contract_deployment':
-        return <CheckCircle className="w-4 h-4 text-cyan-400" />;
       case 'ai_agent_set':
         return <CheckCircle className="w-4 h-4 text-emerald-400" />;
+      case 'probability_update':
+        return <Clock className="w-4 h-4 text-cyan-400" />;
       case 'pool_registered':
-        return <Clock className="w-4 h-4 text-purple-400" />;
+        return <CheckCircle className="w-4 h-4 text-purple-400" />;
       default:
         return <AlertCircle className="w-4 h-4 text-yellow-400" />;
     }
-  };
-
-  const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString();
   };
 
   if (!address) {
@@ -92,7 +70,7 @@ export const TransactionsSection = () => {
     );
   }
 
-  if (isLoading) {
+  if (isLoading && transactions.length === 0) {
     return (
       <div className="bg-black/40 rounded-2xl border border-white/10 p-8 text-center">
         <div className="animate-pulse space-y-4">
@@ -112,7 +90,7 @@ export const TransactionsSection = () => {
       <div className="flex items-center justify-between p-6 border-b border-white/10">
         <div>
           <h2 className="text-xl font-bold text-white">Transaction History</h2>
-          <p className="text-white/40 text-sm mt-1">Real on-chain transactions</p>
+          <p className="text-white/40 text-sm mt-1">Real on-chain transactions from your wallet</p>
         </div>
         <button
           onClick={refresh}
@@ -130,8 +108,9 @@ export const TransactionsSection = () => {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
               <span className="text-2xl">📭</span>
             </div>
-            <p className="text-white/40">No transactions found</p>
+            <p className="text-white/40">No transactions yet</p>
             <p className="text-white/20 text-sm mt-1">Complete a transaction to see it here</p>
+            <p className="text-white/10 text-xs mt-3">Set AI Agent or update probability to create your first transaction</p>
           </div>
         ) : (
           transactions.map((tx, idx) => (
@@ -151,7 +130,7 @@ export const TransactionsSection = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
-                    {tx.status}
+                    confirmed
                   </span>
                   <a 
                     href={`https://web3.okx.com/explorer/x-layer/evm/tx/${tx.hash}`}
@@ -169,12 +148,14 @@ export const TransactionsSection = () => {
       </div>
       
       {/* Footer */}
-      <div className="p-4 border-t border-white/10 bg-white/5">
-        <div className="flex items-center justify-between text-xs text-white/30">
-          <span>Contract: 0x3C39...31d61</span>
-          <span>Network: X Layer Mainnet</span>
+      {transactions.length > 0 && (
+        <div className="p-4 border-t border-white/10 bg-white/5">
+          <div className="flex items-center justify-between text-xs text-white/30">
+            <span>Total: {transactions.length} transactions</span>
+            <span>Network: X Layer Mainnet</span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
