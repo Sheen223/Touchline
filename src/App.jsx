@@ -126,16 +126,30 @@ const ContractInfoCard = ({ contractAddress, aiAgent, isOwner, onUpdateProbabili
               Contract Address
             </div>
             <div className="flex items-center gap-2 flex-wrap p-3 bg-black/30 rounded-xl border border-white/10 group-hover:border-cyan-500/30 transition-all">
-              <code className="text-cyan-400 text-sm font-mono">
-                {contractAddress?.slice(0, 10)}...{contractAddress?.slice(-8)}
-              </code>
-              <button onClick={copyAddress} className="p-1 rounded-lg hover:bg-white/10 transition-colors">
-                <Copy className="w-3.5 h-3.5 text-white/40" />
-              </button>
-              <a href={`https://web3.okx.com/explorer/x-layer/evm/address/${CONTRACT_ADDRESS}`} target="_blank" rel="noopener noreferrer" className="p-1 rounded-lg hover:bg-white/10 transition-colors">
-                <ExternalLink className="w-3.5 h-3.5 text-white/40" />
-              </a>
-            </div>
+  <code className="text-cyan-400 text-sm font-mono">
+    {contractAddress?.slice(0, 10)}...{contractAddress?.slice(-8)}
+  </code>
+  <button 
+    onClick={copyAddress} 
+    className="p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+    title="Copy full address"
+  >
+    {copied ? (
+      <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+    ) : (
+      <Copy className="w-3.5 h-3.5 text-white/40" />
+    )}
+  </button>
+  <a 
+    href={`https://web3.okx.com/explorer/x-layer/evm/address/${CONTRACT_ADDRESS}`} 
+    target="_blank" 
+    rel="noopener noreferrer" 
+    className="p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+    title="View on explorer"
+  >
+    <ExternalLink className="w-3.5 h-3.5 text-white/40" />
+  </a>
+</div>
           </div>
 
           <div>
@@ -151,7 +165,7 @@ const ContractInfoCard = ({ contractAddress, aiAgent, isOwner, onUpdateProbabili
             </div>
             <div className="mt-3">
               {!isAgentSet ? (
-                <button onClick={handleSetAIAgent} disabled={isSettingAgent} className="w-full mt-2 px-3 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-medium disabled:opacity-50 hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                <button onClick={handleSetAIAgent} disabled={isSettingAgent} className="w-full mt-2 px-3 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-medium disabled:opacity-50 hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
                   {isSettingAgent ? (
                     <>
                       <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -195,7 +209,7 @@ const ContractInfoCard = ({ contractAddress, aiAgent, isOwner, onUpdateProbabili
             </div>
 
             <div className="relative">
-              <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-black/50 to-black/30 rounded-xl border border-white/10 hover:border-cyan-500/30 transition-all">
+              <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-black/50 to-black/30 rounded-xl border border-white/10 hover:border-cyan-500/30 transition-all cursor-pointer">
                 {selectedTeamData ? (
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${selectedTeamData.color} flex items-center justify-center text-sm flex-shrink-0`}>
@@ -226,7 +240,7 @@ const ContractInfoCard = ({ contractAddress, aiAgent, isOwner, onUpdateProbabili
                         setProbability(team.currentProb);
                         setIsDropdownOpen(false);
                       }}
-                      className="w-full flex items-center gap-3 p-3 hover:bg-white/10 transition-all group"
+                      className="w-full flex items-center gap-3 p-3 hover:bg-white/10 transition-all group cursor-pointer"
                     >
                       <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${team.color} flex items-center justify-center text-sm group-hover:scale-110 transition-transform flex-shrink-0`}>
                         {team.flag}
@@ -251,7 +265,7 @@ const ContractInfoCard = ({ contractAddress, aiAgent, isOwner, onUpdateProbabili
                   <span className="text-xs text-white/40">Adjust Probability</span>
                   <div className="flex items-center gap-2">
                     <span className="text-2xl font-bold text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text">{probability}%</span>
-                    <button onClick={() => setProbability(selectedTeamData.currentProb)} className="text-xs px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 transition-colors">Reset</button>
+                    <button onClick={() => setProbability(selectedTeamData.currentProb)} className="text-xs px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 transition-colors cursor-pointer">Reset</button>
                   </div>
                 </div>
                 <input type="range" min="0" max="100" value={probability} onChange={(e) => setProbability(parseInt(e.target.value))} className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer" style={{ background: `linear-gradient(90deg, #06b6d4 0%, #a855f7 ${probability}%, rgba(255,255,255,0.1) ${probability}%)` }} />
@@ -265,7 +279,7 @@ const ContractInfoCard = ({ contractAddress, aiAgent, isOwner, onUpdateProbabili
               </div>
             )}
 
-            <button onClick={handleUpdateProbability} disabled={isUpdating || !selectedTeam || !isAgentSet} className="w-full mt-4 px-4 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 text-white text-sm font-medium disabled:opacity-50 hover:shadow-lg hover:shadow-cyan-500/25 transition-all flex items-center justify-center gap-2">
+            <button onClick={handleUpdateProbability} disabled={isUpdating || !selectedTeam || !isAgentSet} className="w-full mt-4 px-4 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 text-white text-sm font-medium disabled:opacity-50 hover:shadow-lg hover:shadow-cyan-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer">
               {isUpdating ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -279,8 +293,17 @@ const ContractInfoCard = ({ contractAddress, aiAgent, isOwner, onUpdateProbabili
               )}
             </button>
 
-            {errorMsg && <div className="mt-3 p-2 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-xs text-center">{errorMsg}</div>}
-            {successMsg && <div className="mt-3 p-2 bg-emerald-500/20 border border-emerald-500/50 rounded-lg text-emerald-400 text-xs text-center">{successMsg}</div>}
+           // Replace the errorMsg div with this:
+{errorMsg && (
+  <div className="mt-3 p-2 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-xs text-center break-words whitespace-normal max-w-full overflow-x-auto">
+    {errorMsg}
+  </div>
+)}
+{successMsg && (
+  <div className="mt-3 p-2 bg-emerald-500/20 border border-emerald-500/50 rounded-lg text-emerald-400 text-xs text-center break-words whitespace-normal">
+    {successMsg}
+  </div>
+)}
             <p className="text-xs text-emerald-400/70 text-center mt-3">{isAgentSet ? '✅ AI Agent set. Ready to update probabilities!' : '⚠️ Please set AI Agent first to enable updates'}</p>
           </div>
         </div>
@@ -351,7 +374,7 @@ const AgentTerminal = ({ onUpdateProbability, isContractReady, isAgentSet }) => 
             <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center"><span className="text-xl">🤖</span></div>
             <div><h3 className="text-white font-bold">AI Agent Console</h3><p className="text-xs text-white/40">Autonomous portfolio manager on X Layer</p></div>
           </div>
-          <button onClick={runAgentCycle} disabled={isRunning || !isContractReady || !isAgentSet} className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-medium hover:shadow-lg transition-all disabled:opacity-50">
+          <button onClick={runAgentCycle} disabled={isRunning || !isContractReady || !isAgentSet} className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-medium hover:shadow-lg transition-all disabled:opacity-50 cursor-pointer">
             {isRunning ? '🔄 EXECUTING...' : '🚀 RUN AGENT CYCLE'}
           </button>
         </div>
@@ -397,6 +420,7 @@ const AppContent = () => {
   const { contract, aiAgent, updateProbability, setAIAgent } = useCupFolioContract();
   const [contractAddress] = useState(CONTRACT_ADDRESS);
   const [txStatus, setTxStatus] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // <-- ADDED THIS LINE
   const isContractReady = true;
   const isAgentSet = aiAgent && aiAgent !== '0x0000000000000000000000000000000000000000';
 
@@ -406,6 +430,7 @@ const AppContent = () => {
       const tx = await setAIAgent();
       setTxStatus({ type: 'success', message: `✅ AI Agent set! TX: ${tx.hash.slice(0, 10)}...` });
       setTimeout(() => setTxStatus(null), 5000);
+      setRefreshTrigger(prev => prev + 1);
       return tx;
     } catch (error) {
       setTxStatus({ type: 'error', message: `❌ ${error.message}` });
@@ -420,6 +445,7 @@ const AppContent = () => {
       const tx = await updateProbability(team, probability);
       setTxStatus({ type: 'success', message: `✅ Transaction confirmed! ${team} now ${probability}% | TX: ${tx.hash.slice(0, 10)}...` });
       setTimeout(() => setTxStatus(null), 5000);
+      setRefreshTrigger(prev => prev + 1);
       return tx;
     } catch (error) {
       setTxStatus({ type: 'error', message: `❌ ${error.message}` });
@@ -436,7 +462,7 @@ const AppContent = () => {
           <h1 className="text-3xl font-bold text-white mb-3">CupFolio</h1>
           <p className="text-white/40 mb-2">AI-powered World Cup portfolio manager</p>
           <p className="text-white/30 text-sm mb-8">on X Layer Mainnet</p>
-          <button onClick={connect} disabled={isConnecting} className="px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold hover:shadow-lg transition-all disabled:opacity-50 w-full flex items-center justify-center gap-2">
+          <button onClick={connect} disabled={isConnecting} className="px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold hover:shadow-lg transition-all disabled:opacity-50 w-full flex items-center justify-center gap-2 cursor-pointer">
             <Wallet className="w-5 h-5" />
             {isConnecting ? 'Connecting...' : 'Connect Wallet'}
           </button>
@@ -461,7 +487,7 @@ const AppContent = () => {
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-yellow-500/20 flex items-center justify-center"><span className="text-3xl">⚠️</span></div>
           <h2 className="text-xl font-bold text-white mb-3">Wrong Network</h2>
           <p className="text-white/40 mb-6">Please switch to X Layer Mainnet</p>
-          <button onClick={switchToXLayer} className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-medium">Switch to X Layer</button>
+          <button onClick={switchToXLayer} className="cursor-pointer px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-medium cursor-pointer">Switch to X Layer</button>
         </div>
       </div>
     );
@@ -507,7 +533,7 @@ const AppContent = () => {
             {/* TRANSACTIONS SECTION */}
             <div id="transactions" className="scroll-mt-20 space-y-8">
               <div className="mb-4 mt-8"><h2 className="text-xl font-bold text-white">Transaction History</h2><p className="text-white/40 text-sm">Real on-chain transactions</p></div>
-              <TransactionsSection />
+              <TransactionsSection refreshTrigger={refreshTrigger} />
 
               <div className="mb-4 mt-8"><h2 className="text-xl font-bold text-white">Activity Feed</h2><p className="text-white/40 text-sm">Real-time agent actions</p></div>
               <ActivityFeed />

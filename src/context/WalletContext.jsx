@@ -15,22 +15,18 @@ export const useWallet = () => {
 const getWalletProvider = () => {
   if (typeof window === 'undefined') return null;
   
-  // OKX Wallet
   if (window.okxwallet) {
     return window.okxwallet;
   }
-  
-  // MetaMask
   if (window.ethereum) {
     return window.ethereum;
   }
-  
   return null;
 };
 
 // X Layer Network Configuration
 const XLAYER_NETWORK = {
-  chainId: '0xc4', // 196 in hex
+  chainId: '0xc4',
   chainName: 'X Layer Mainnet',
   nativeCurrency: {
     name: 'OKB',
@@ -50,7 +46,7 @@ export const WalletProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [walletType, setWalletType] = useState(null);
 
-  // Check connection on load
+  // Check connection on page load
   useEffect(() => {
     const checkConnection = async () => {
       const provider = getWalletProvider();
@@ -62,7 +58,6 @@ export const WalletProvider = ({ children }) => {
           setAddress(accounts[0]);
           setIsConnected(true);
           
-          // Detect wallet type
           if (window.okxwallet && provider === window.okxwallet) {
             setWalletType('OKX Wallet');
           } else if (window.ethereum?.isMetaMask) {
@@ -98,6 +93,9 @@ export const WalletProvider = ({ children }) => {
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: XLAYER_NETWORK.chainId }],
       });
+      // Update chainId after switch
+      const chainIdHex = await provider.request({ method: 'eth_chainId' });
+      setChainId(parseInt(chainIdHex, 16));
       return true;
     } catch (error) {
       if (error.code === 4902) {
@@ -106,6 +104,8 @@ export const WalletProvider = ({ children }) => {
             method: 'wallet_addEthereumChain',
             params: [XLAYER_NETWORK],
           });
+          const chainIdHex = await provider.request({ method: 'eth_chainId' });
+          setChainId(parseInt(chainIdHex, 16));
           return true;
         } catch (addError) {
           console.error('Failed to add network:', addError);
@@ -128,7 +128,6 @@ export const WalletProvider = ({ children }) => {
     }
     
     try {
-      // Request account access - this triggers the popup
       const accounts = await provider.request({
         method: 'eth_requestAccounts',
       });
@@ -137,14 +136,12 @@ export const WalletProvider = ({ children }) => {
         setAddress(accounts[0]);
         setIsConnected(true);
         
-        // Detect wallet type
         if (window.okxwallet && provider === window.okxwallet) {
           setWalletType('OKX Wallet');
         } else if (window.ethereum?.isMetaMask) {
           setWalletType('MetaMask');
         }
         
-        // Get balance
         const balanceHex = await provider.request({
           method: 'eth_getBalance',
           params: [accounts[0], 'latest']
@@ -152,24 +149,12 @@ export const WalletProvider = ({ children }) => {
         const balanceInOKB = parseInt(balanceHex, 16) / 1e18;
         setBalance(balanceInOKB.toFixed(4));
         
-        // Get chain ID
         const chainIdHex = await provider.request({ method: 'eth_chainId' });
         const currentChainId = parseInt(chainIdHex, 16);
         setChainId(currentChainId);
         
-        // If not on X Layer, prompt to switch
         if (currentChainId !== 196) {
-          const switched = await switchToXLayer();
-          if (switched) {
-            // Refresh balance after network switch
-            const newBalanceHex = await provider.request({
-              method: 'eth_getBalance',
-              params: [accounts[0], 'latest']
-            });
-            const newBalance = parseInt(newBalanceHex, 16) / 1e18;
-            setBalance(newBalance.toFixed(4));
-            setChainId(196);
-          }
+          await switchToXLayer();
         }
       }
     } catch (err) {

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 
 const CONTRACT_ADDRESS = "0x3C39ee3BC1c49f9323cEE20EE736e84A6b831d61";
-const XLAYER_RPC = "https://rpc.xlayer.tech";
+const RPC_URL = "https://rpc.xlayer.tech";
 
 const CONTRACT_ABI = [
   "function aiAgent() view returns (address)",
@@ -13,10 +13,7 @@ const CONTRACT_ABI = [
   "function getUpsetProbability(address poolAddress) view returns (uint8)",
 ];
 
-// Track which pools have been registered (in-memory cache)
-const registeredPoolsCache = new Set();
-
-// Team mapping
+// Team mapping with pool addresses and group info
 const teamPoolMap = {
   'Brazil': { address: '0x0000000000000000000000000000000000000001', groupId: 3, teamA: 'Brazil', teamB: 'Opponent' },
   'Morocco': { address: '0x0000000000000000000000000000000000000002', groupId: 3, teamA: 'Morocco', teamB: 'Opponent' },
@@ -32,42 +29,48 @@ const teamPoolMap = {
   'Haiti': { address: '0x0000000000000000000000000000000000000012', groupId: 1, teamA: 'Haiti', teamB: 'Opponent' },
 };
 
+// Track registered pools in memory (resets on page refresh)
+const registeredPools = new Set();
+
 export const useCupFolioContract = () => {
   const [contract, setContract] = useState(null);
   const [aiAgent, setAiAgent] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Fetch AI Agent on every page load
   useEffect(() => {
-    const init = async () => {
+    const fetchAIAgent = async () => {
       try {
-        const provider = new ethers.JsonRpcProvider(XLAYER_RPC);
+        const provider = new ethers.JsonRpcProvider(RPC_URL);
         const contractInstance = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
         setContract(contractInstance);
         
-        try {
-          const agent = await contractInstance.aiAgent();
-          setAiAgent(agent);
-          console.log("AI Agent:", agent);
-        } catch (err) {
-          console.log("Could not fetch AI agent");
-        }
+        // Fetch current AI Agent from contract
+        const agent = await contractInstance.aiAgent();
+        setAiAgent(agent);
+        console.log("🔍 Current AI Agent from contract:", agent);
+        
+        // Clear registered pools cache on page load
+        registeredPools.clear();
+        
       } catch (err) {
-        console.error("Init error:", err);
+        console.error("Failed to fetch AI Agent:", err);
       }
     };
-    init();
+    
+    fetchAIAgent();
   }, []);
 
-  // Register pool only if not already registered
-  const ensurePoolRegistered = async (team, walletProvider) => {
+  // Register a pool for a team (only needs to be done once per team)
+  const registerTeamPool = async (team, walletProvider) => {
     const teamData = teamPoolMap[team];
     if (!teamData) {
       throw new Error(`Unknown team: ${team}`);
     }
     
     // Check cache first
-    if (registeredPoolsCache.has(team)) {
+    if (registeredPools.has(team)) {
       console.log(`✅ Pool for ${team} already registered (cached)`);
       return true;
     }
@@ -89,77 +92,44 @@ export const useCupFolioContract = () => {
       );
       await tx.wait();
       
-      // Add to cache
-      registeredPoolsCache.add(team);
+      registeredPools.add(team);
       console.log(`✅ Pool for ${team} registered successfully!`);
       return true;
+      
     } catch (err) {
-      // If error says "Pool already registered", add to cache and continue
-      if (err.message.includes("Pool already registered") || err.reason === "Pool already registered") {
-        console.log(`⚠️ Pool for ${team} was already registered on-chain`);
-        registeredPoolsCache.add(team);
+      // If pool already registered, add to cache and continue
+      if (err.message?.includes("Pool already registered") || err.reason === "Pool already registered") {
+        console.log(`⚠️ Pool for ${team} already registered on-chain`);
+        registeredPools.add(team);
         return true;
       }
       throw err;
     }
   };
 
-  const setAIAgent = async () => {
-    const walletProvider = window.okxwallet || window.ethereum;
-    if (!walletProvider) {
-      throw new Error("No wallet detected");
-    }
-    
-    try {
-      const accounts = await walletProvider.request({ method: 'eth_requestAccounts' });
-      if (!accounts || accounts.length === 0) {
-        throw new Error("No accounts found");
-      }
-      
-      const provider = new ethers.BrowserProvider(walletProvider);
-      const signer = await provider.getSigner();
-      const contractWithSigner = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-      
-      setIsLoading(true);
-      const tx = await contractWithSigner.setAIAgent(accounts[0]);
-      await tx.wait();
-      
-      setAiAgent(accounts[0]);
-      return { hash: tx.hash };
-    } catch (err) {
-      console.error("Set AI Agent error:", err);
-      throw new Error(err.message || "Failed to set AI agent");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const updateProbability = async (team, probability) => {
     const walletProvider = window.okxwallet || window.ethereum;
-    if (!walletProvider) {
-      throw new Error("No wallet detected");
-    }
+    if (!walletProvider) throw new Error("No wallet detected");
     
     try {
-      // Ensure pool is registered (checks cache first, only registers once)
-      await ensurePoolRegistered(team, walletProvider);
-      
-      const accounts = await walletProvider.request({ method: 'eth_accounts' });
+      // First, ensure we have account access
+      let accounts = await walletProvider.request({ method: 'eth_accounts' });
       if (!accounts || accounts.length === 0) {
-        const newAccounts = await walletProvider.request({ method: 'eth_requestAccounts' });
-        if (!newAccounts || newAccounts.length === 0) {
+        accounts = await walletProvider.request({ method: 'eth_requestAccounts' });
+        if (!accounts || accounts.length === 0) {
           throw new Error("Please approve wallet connection");
         }
       }
+      
+      // Register the pool first (only happens once per team)
+      await registerTeamPool(team, walletProvider);
       
       const provider = new ethers.BrowserProvider(walletProvider);
       const signer = await provider.getSigner();
       const contractWithSigner = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
       
       const teamData = teamPoolMap[team];
-      if (!teamData) {
-        throw new Error(`Unknown team: ${team}`);
-      }
+      if (!teamData) throw new Error(`Unknown team: ${team}`);
       
       setIsLoading(true);
       console.log(`📡 Updating ${team} probability to ${probability}%...`);
@@ -168,12 +138,45 @@ export const useCupFolioContract = () => {
       
       console.log(`✅ ${team} probability updated to ${probability}%!`);
       return { hash: tx.hash, block: receipt.blockNumber };
+      
     } catch (err) {
       console.error("Update error:", err);
       if (err.code === 4001) {
         throw new Error("Transaction rejected. Please approve in your wallet.");
       }
       throw new Error(err.message || "Transaction failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const setAIAgent = async () => {
+    const walletProvider = window.okxwallet || window.ethereum;
+    if (!walletProvider) throw new Error("No wallet detected");
+    
+    try {
+      const accounts = await walletProvider.request({ method: 'eth_requestAccounts' });
+      if (!accounts || accounts.length === 0) throw new Error("No accounts found");
+      
+      const provider = new ethers.BrowserProvider(walletProvider);
+      const signer = await provider.getSigner();
+      const contractWithSigner = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+      
+      setIsLoading(true);
+      console.log(`📡 Setting AI Agent to: ${accounts[0]}`);
+      const tx = await contractWithSigner.setAIAgent(accounts[0]);
+      await tx.wait();
+      
+      setAiAgent(accounts[0]);
+      console.log(`✅ AI Agent set successfully!`);
+      
+      return { hash: tx.hash };
+    } catch (err) {
+      console.error("Set AI Agent error:", err);
+      if (err.code === 4001) {
+        throw new Error("Transaction rejected. Please approve in your wallet.");
+      }
+      throw new Error(err.message || "Failed to set AI agent");
     } finally {
       setIsLoading(false);
     }
