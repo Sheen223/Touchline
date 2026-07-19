@@ -16,7 +16,7 @@ export const DepositModal = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (isOpen) {
-      fetch('http://localhost:3001/api/agent')
+      fetch('https://touchline-production-1bc1.up.railway.app/api/agent')
         .then(res => res.json())
         .then(data => setAgentPubKey(data.publicKey))
         .catch(err => console.error("Failed to fetch agent pubkey", err));

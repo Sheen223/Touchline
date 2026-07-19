@@ -22,8 +22,8 @@ export const MatchProvider = ({ children }) => {
     const fetchInitialState = async () => {
       try {
         const [portfolioRes, logsRes] = await Promise.all([
-          fetch('http://localhost:3001/api/portfolio'),
-          fetch('http://localhost:3001/api/logs')
+          fetch('https://touchline-production-1bc1.up.railway.app/api/portfolio'),
+          fetch('https://touchline-production-1bc1.up.railway.app/api/logs')
         ]);
         
         if (portfolioRes.ok) {
@@ -43,7 +43,7 @@ export const MatchProvider = ({ children }) => {
 
     fetchInitialState().then(() => {
       // 2. Connect to Multiplexed SSE Stream
-      const es = new EventSource('http://localhost:3001/api/stream');
+      const es = new EventSource('https://touchline-production-1bc1.up.railway.app/api/stream');
 
       es.onmessage = (e) => {
         try {

@@ -1,5 +1,5 @@
 // src/services/txlineService.js
-const BACKEND_URL = 'http://localhost:3001';
+const BACKEND_URL = 'https://touchline-production-1bc1.up.railway.app';
 
 export const fetchTxLineSnapshot = async () => {
   try {
