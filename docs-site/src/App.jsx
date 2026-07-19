@@ -16,7 +16,7 @@ function App() {
             <div className="flex gap-6 items-center">
               <Link to="/" className="text-gray-500 hover:text-gray-900 font-medium transition-colors">Home</Link>
               <Link to="/docs" className="text-gray-500 hover:text-gray-900 font-medium transition-colors">Documentation</Link>
-              <a href="http://localhost:5174/" className="px-4 py-2 rounded-xl bg-black text-white hover:bg-gray-900 transition-colors text-sm font-semibold shadow-sm" target="_blank" rel="noopener noreferrer">
+              <a href="https://touchline-football.vercel.app/" className="px-4 py-2 rounded-xl bg-black text-white hover:bg-gray-900 transition-colors text-sm font-semibold shadow-sm" target="_blank" rel="noopener noreferrer">
                 Open App
               </a>
             </div>
