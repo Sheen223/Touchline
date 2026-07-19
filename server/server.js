@@ -13,7 +13,7 @@ dotenv.config();
 const app = express();
 app.use(cors());
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 const TXLINE_ORIGIN = 'https://txline.txodds.com';
 const TXLINE_API_TOKEN = process.env.VITE_TXLINE_API_TOKEN || 'txoracle_api_e490fe5ec76142c99b997d2fe874c775';
 
