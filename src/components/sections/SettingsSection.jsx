@@ -31,7 +31,7 @@ export const SettingsSection = () => {
   });
   
   const [displayName, setDisplayName] = useState('Alex Johnson');
-  const [email, setEmail] = useState('alex@cupfolio.io');
+  const [email, setEmail] = useState('alex@Touchline.io');
   
   const toggleSetting = (key) => {
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));

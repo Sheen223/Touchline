@@ -231,7 +231,7 @@ export const StatsSection = () => {
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
           <span className="text-[10px] text-white/40 font-mono tracking-wider">AI AGENT ACTIVE</span>
           <div className="w-px h-3 bg-white/10 mx-1" />
-          <span className="text-[10px] text-white/30 font-mono">X LAYER • CHAIN 196</span>
+          <span className="text-[10px] text-white/30 font-mono">Solana • CHAIN 196</span>
           <div className="w-px h-3 bg-white/10 mx-1" />
           <span className="text-[10px] text-white/30 font-mono">GAS: 1.2 GWEI</span>
         </div>

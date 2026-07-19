@@ -1,0 +1,64 @@
+{
+  "version": "0.1.0",
+  "name": "touchline",
+  "instructions": [
+    {
+      "name": "initialize",
+      "discriminator": [ 175, 175, 109, 31, 13, 152, 155, 237 ],
+      "accounts": [
+        { "name": "state", "isMut": true, "isSigner": false },
+        { "name": "signer", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "setAiAgent",
+      "discriminator": [ 216, 84, 162, 148, 34, 254, 48, 3 ],
+      "accounts": [
+        { "name": "state", "isMut": true, "isSigner": false },
+        { "name": "signer", "isMut": true, "isSigner": true }
+      ],
+      "args": [
+        { "name": "newAgent", "type": "pubkey" }
+      ]
+    },
+    {
+      "name": "updateProbability",
+      "discriminator": [ 96, 8, 0, 153, 1, 63, 21, 32 ],
+      "accounts": [
+        { "name": "state", "isMut": true, "isSigner": false },
+        { "name": "signer", "isMut": true, "isSigner": true }
+      ],
+      "args": [
+        { "name": "team", "type": "string" },
+        { "name": "probability", "type": "u8" }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "PortfolioState",
+      "discriminator": [ 6, 114, 144, 69, 245, 112, 10, 205 ]
+    }
+  ],
+  "types": [
+    {
+      "name": "PortfolioState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "owner", "type": "pubkey" },
+          { "name": "aiAgent", "type": "pubkey" }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Unauthorized",
+      "msg": "You are not authorized to perform this action."
+    }
+  ]
+}

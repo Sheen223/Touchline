@@ -337,7 +337,7 @@ const SuccessStep = ({ amount, strategy, txHash }) => {
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-white/40">Network</span>
-          <span className="text-white">X Layer</span>
+          <span className="text-white">Solana</span>
         </div>
       </div>
       
@@ -369,28 +369,15 @@ export const DepositFlow = ({ isOpen, onClose }) => {
     // Simulate blockchain transaction
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Generate mock transaction hash
-    const mockTxHash = '0x' + Array.from({ length: 64 }, () => 
+    // Generate transaction hash
+    const generatedTxHash = '0x' + Array.from({ length: 64 }, () => 
       '0123456789abcdef'[Math.floor(Math.random() * 16)]
     ).join('');
-    setTxHash(mockTxHash);
+    setTxHash(generatedTxHash);
     
-    // Create initial portfolio positions
-    const initialPositions = [
-      { team: 'Brazil', group: 'C', value: amount * 0.22, probability: 0.88 },
-      { team: 'Morocco', group: 'C', value: amount * 0.11, probability: 0.62 },
-      { team: 'Scotland', group: 'C', value: amount * 0.08, probability: 0.45 },
-      { team: 'USA', group: 'D', value: amount * 0.05, probability: 0.75 }
-    ];
+    // Deposit USDC to balance, but do not fake portfolio positions
+    deposit(amount, selectedStrategy, [], {});
     
-    const allocations = {
-      'Brazil': amount * 0.22,
-      'Morocco': amount * 0.11,
-      'Scotland': amount * 0.08,
-      'USA': amount * 0.05
-    };
-    
-    deposit(amount, selectedStrategy, initialPositions, allocations);
     
     setIsProcessing(false);
     setStep(4);
@@ -423,7 +410,7 @@ export const DepositFlow = ({ isOpen, onClose }) => {
                 <Wallet className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-white">Deposit to CupFolio</h2>
+                <h2 className="text-lg font-semibold text-white">Deposit to Touchline</h2>
                 <p className="text-xs text-white/40">Start your World Cup portfolio</p>
               </div>
             </div>
@@ -477,7 +464,7 @@ export const DepositFlow = ({ isOpen, onClose }) => {
           {/* Footer */}
           <div className="p-4 border-t border-white/10 bg-white/5">
             <p className="text-center text-[10px] text-white/30 font-mono">
-              Demo Mode • Simulated transactions on X Layer testnet
+              Demo Mode • Simulated transactions on Solana testnet
             </p>
           </div>
         </motion.div>

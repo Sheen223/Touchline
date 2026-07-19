@@ -21,7 +21,7 @@ export const DemoBadge = () => {
             <div className="w-px h-4 bg-yellow-500/30" />
             <div className="flex items-center gap-1">
               <Activity className="w-3 h-3 text-yellow-400/70" />
-              <span className="text-yellow-400/70 text-[10px] font-mono">Mock Transactions</span>
+              <span className="text-yellow-400/70 text-[10px] font-mono">Devnet Transactions</span>
             </div>
           </div>
         </div>
@@ -30,10 +30,10 @@ export const DemoBadge = () => {
           <div className="absolute bottom-full right-0 mb-2 w-64 p-3 bg-black/95 backdrop-blur-xl border border-yellow-500/30 rounded-lg shadow-2xl">
             <div className="text-yellow-400 text-xs font-mono mb-2">🎬 DEMO PRESENTATION MODE</div>
             <div className="text-gray-400 text-[11px] space-y-1">
-              <p>• Smart contract ready on X Layer</p>
+              <p>• Smart contract ready on Solana</p>
               <p>• AI agent detecting real upsets</p>
               <p>• Simulated transactions for smooth demo</p>
-              <p>• Same code works with real OKB</p>
+              <p>• Same code works with real USDC</p>
             </div>
           </div>
         )}

@@ -1,105 +1,89 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { RefreshCw, Coins, AlertTriangle, CheckCircle2, Search, ClipboardList, TrendingUp, TrendingDown, Terminal } from 'lucide-react';
+import { useMatchContext } from '../../context/MatchContext';
 
 const ActivityIcon = ({ type }) => {
   const icons = {
-    trade: '🔄',
-    yield: '💰',
-    alert: '⚠️',
-    success: '✅',
-    scan: '🔍'
+    trade: <RefreshCw className="w-5 h-5 text-gray-700" />,
+    yield: <Coins className="w-5 h-5 text-gray-700" />,
+    alert: <AlertTriangle className="w-5 h-5 text-gray-700" />,
+    success: <CheckCircle2 className="w-5 h-5 text-gray-700" />,
+    scan: <Search className="w-5 h-5 text-gray-700" />,
+    allocation: <TrendingUp className="w-5 h-5 text-green-600" />,
+    divestment: <TrendingDown className="w-5 h-5 text-red-600" />,
+    info: <Terminal className="w-5 h-5 text-gray-700" />
   };
-  return <span className="text-lg">{icons[type] || '📋'}</span>;
+  return <div>{icons[type] || <ClipboardList className="w-5 h-5 text-gray-700" />}</div>;
 };
 
 export const ActivityFeed = () => {
-  const [activities, setActivities] = useState([
-    { id: 1, type: 'success', message: 'Portfolio initialized', detail: 'Strategy: Balanced', timestamp: 'Just now' }
-  ]);
+  const { agentEvents } = useMatchContext();
+  
+  // Filter for actual actions (allocations, trades, alerts, etc.)
+  // We can just show all agentEvents, but since "Agent Console" already shows everything,
+  // let's specifically filter for high-level events (allocation, divestment, success)
+  // or just show the last 10 events of any type that have an amount or are explicitly flagged.
+  const activities = agentEvents.filter(e => e.type === 'allocation' || e.type === 'divestment' || e.type === 'trade' || e.type === 'success' || e.amount);
 
-  useEffect(() => {
-    const actions = [
-      { type: 'trade', message: 'Agent bought Morocco YES', detail: '+$40', color: 'cyan' },
-      { type: 'trade', message: 'Agent sold Brazil YES', detail: '-$60', color: 'purple' },
-      { type: 'yield', message: 'Yield earned', detail: '+$0.42', color: 'emerald' },
-      { type: 'alert', message: 'Brazil upset detected', detail: 'Rebalancing', color: 'yellow' }
-    ];
-    
-    let index = 0;
-    const interval = setInterval(() => {
-      const action = actions[index % actions.length];
-      setActivities(prev => [{
-        id: Date.now(),
-        ...action,
-        timestamp: 'Just now'
-      }, ...prev].slice(0, 10));
-      
-      // Update timestamps after 3 seconds
-      setTimeout(() => {
-        setActivities(prev => prev.map(act => ({
-          ...act,
-          timestamp: act.timestamp === 'Just now' ? '1 min ago' : 
-                     act.timestamp === '1 min ago' ? '5 mins ago' : 
-                     act.timestamp === '5 mins ago' ? '1 hour ago' : act.timestamp
-        })));
-      }, 3000);
-      
-      index++;
-    }, 10000);
-    
-    return () => clearInterval(interval);
-  }, []);
+  // If no trades have happened yet, show a clean starting state
+  if (activities.length === 0) {
+    activities.push({
+      id: 'init',
+      type: 'success',
+      message: 'Portfolio initialized',
+      detail: 'Awaiting Live Feed',
+      timestamp: new Date().toISOString()
+    });
+  }
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8 mb-12">
       {/* Section header */}
       <div className="mb-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-3">
-          <span className="text-[11px] text-white/50 font-mono tracking-wider">LIVE FEED</span>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 border border-gray-200 mb-3">
+          <span className="text-[11px] text-gray-500 font-bold tracking-wider">LIVE FEED</span>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-white">Recent Activity</h2>
-        <p className="text-white/40 text-sm mt-2">Real-time agent actions</p>
-        <div className="w-12 h-0.5 bg-gradient-to-r from-cyan-500 to-purple-500 mt-4" />
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Recent Activity</h2>
+        <p className="text-gray-500 text-sm mt-2 font-medium">Real-time agent actions</p>
+        <div className="w-12 h-1 bg-black rounded-full mt-4" />
       </div>
       
       {/* Activity Card */}
-      <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
-        <div className="divide-y divide-white/5">
-          {activities.map((activity) => (
-            <div key={activity.id} className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors">
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${
-                activity.color === 'cyan' ? 'from-cyan-500/20 to-cyan-500/10' :
-                activity.color === 'purple' ? 'from-purple-500/20 to-purple-500/10' :
-                activity.color === 'emerald' ? 'from-emerald-500/20 to-emerald-500/10' :
-                'from-yellow-500/20 to-yellow-500/10'
-              } flex items-center justify-center`}>
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+        <div className="divide-y divide-gray-100">
+          {activities.map((activity, idx) => (
+            <div key={activity.id || idx} className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
+              <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center">
                 <ActivityIcon type={activity.type} />
               </div>
               
               <div className="flex-1">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <p className="text-white text-sm font-medium">{activity.message}</p>
-                  {activity.detail && (
-                    <span className={`text-xs font-mono px-2 py-0.5 rounded ${
-                      activity.detail.startsWith('+') 
-                        ? 'bg-emerald-500/20 text-emerald-400' 
-                        : activity.detail.startsWith('-')
-                        ? 'bg-red-500/20 text-red-400'
-                        : 'bg-white/10 text-white/40'
+                  <p className="text-gray-900 text-sm font-semibold">{activity.message}</p>
+                  {(activity.detail || activity.amount) && (
+                    <span className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-md ${
+                      (activity.detail || activity.amount).startsWith('+') 
+                        ? 'bg-green-100 text-green-700 border border-green-200' 
+                        : (activity.detail || activity.amount).startsWith('-')
+                        ? 'bg-red-100 text-red-700 border border-red-200'
+                        : 'bg-gray-100 text-gray-600 border border-gray-200'
                     }`}>
-                      {activity.detail}
+                      {activity.detail || activity.amount}
                     </span>
                   )}
                 </div>
-                <p className="text-white/30 text-xs mt-1">{activity.timestamp}</p>
+                <p className="text-gray-400 font-medium text-xs mt-1">
+                  {activity.timestamp ? new Date(activity.timestamp).toLocaleTimeString() : 'Just now'}
+                </p>
               </div>
             </div>
           ))}
         </div>
         
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-white/10 bg-white/5">
-          <div className="flex items-center gap-2 text-xs text-white/30">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
+          <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
             <span>Live updates every 10 seconds</span>
           </div>
         </div>

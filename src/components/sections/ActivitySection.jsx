@@ -3,45 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Activity, CheckCircle, TrendingUp, AlertCircle, Zap, Clock } from 'lucide-react';
 
-const generateMockActivity = () => {
-  const actions = [
-    { type: 'trade', message: 'Agent bought Morocco YES', amount: '+$40', detail: 'Position increased', icon: TrendingUp, color: 'cyan' },
-    { type: 'trade', message: 'Agent sold Brazil YES', amount: '-$60', detail: 'Position decreased', icon: TrendingUp, color: 'purple' },
-    { type: 'yield', message: 'Yield earned from idle capital', amount: '+$0.42', detail: '8% APY', icon: CheckCircle, color: 'emerald' },
-    { type: 'alert', message: 'Brazil upset detected', detail: 'Rebalancing triggered', icon: AlertCircle, color: 'yellow' },
-    { type: 'scan', message: 'Agent scanning fixtures', detail: '72 matches analyzed', icon: Zap, color: 'blue' }
-  ];
-  return actions[Math.floor(Math.random() * actions.length)];
-};
-
 export const ActivitySection = () => {
-  const [activities, setActivities] = useState([
-    { id: 1, type: 'info', message: 'Agent initialized', detail: 'System ready', timestamp: 'Just now', icon: Activity, color: 'white' }
-  ]);
+  // Start with an empty array of genuine activities. Real transactions will be pushed here later.
+  const [activities, setActivities] = useState([]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const newActivity = generateMockActivity();
-      setActivities(prev => [{
-        id: Date.now(),
-        ...newActivity,
-        timestamp: 'Just now'
-      }, ...prev].slice(0, 15));
-      
-      // Update timestamps
-      const timer = setTimeout(() => {
-        setActivities(prev => prev.map(act => ({
-          ...act,
-          timestamp: act.timestamp === 'Just now' ? '1 min ago' : 
-                     act.timestamp === '1 min ago' ? '5 mins ago' : 
-                     act.timestamp === '5 mins ago' ? '1 hour ago' : act.timestamp
-        })));
-      }, 3000);
-      
-      return () => clearTimeout(timer);
-    }, 12000);
-
-    return () => clearInterval(interval);
+    // Ready to subscribe to real smart contract events / TxLINE streams in the future.
   }, []);
 
   return (
@@ -85,9 +52,14 @@ export const ActivitySection = () => {
       {/* Activity List */}
       <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden">
         <div className="divide-y divide-white/5">
-          {activities.map((activity, idx) => (
-            <motion.div
-              key={activity.id}
+          {activities.length === 0 ? (
+            <div className="p-8 text-center text-white/40 italic">
+              Listening for live agent transactions...
+            </div>
+          ) : (
+            activities.map((activity, idx) => (
+              <motion.div
+                key={activity.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.03 }}

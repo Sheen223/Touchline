@@ -1,11 +1,13 @@
 // src/components/sections/AllocationChart.jsx
 import React, { useState } from 'react';
 
+import { useLiveMatches } from '../../hooks/useLiveMatches';
+
 const AllocationPie = ({ data }) => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
   
   // Calculate total for percentages
-  const total = data.reduce((sum, item) => sum + item.value, 0);
+  const total = data.reduce((sum, item) => sum + item.value, 0) || 1; // prevent div by zero
   
   // Generate SVG arc paths for pie chart
   let currentAngle = -90;
@@ -56,23 +58,23 @@ const AllocationPie = ({ data }) => {
             </g>
           ))}
           {/* Center circle */}
-          <circle cx="100" cy="100" r="40" fill="black" />
+          <circle cx="100" cy="100" r="40" fill="#f9fafb" />
           <text 
             x="100" 
             y="95" 
             textAnchor="middle" 
-            fill="white" 
+            fill="#111827" 
             fontSize="20" 
             fontWeight="bold"
             className="rotate-90"
           >
-            {total}
+            {data.length > 0 ? Math.round(total) : 0}
           </text>
           <text 
             x="100" 
             y="115" 
             textAnchor="middle" 
-            fill="white/40" 
+            fill="#6b7280" 
             fontSize="10"
             className="rotate-90"
           >
@@ -82,24 +84,29 @@ const AllocationPie = ({ data }) => {
       </div>
       
       {/* Legend */}
-      <div className="flex-1 space-y-2">
+      <div className="flex-1 space-y-2 w-full">
         {arcs.map((item, idx) => (
           <div
             key={idx}
-            className="flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all hover:bg-white/5"
+            className="flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all hover:bg-gray-50"
             onMouseEnter={() => setHoveredIndex(idx)}
             onMouseLeave={() => setHoveredIndex(null)}
           >
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-              <span className="text-sm text-white/80">{item.name}</span>
+              <span className="text-sm font-medium text-gray-700">{item.name}</span>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-white font-mono">${item.value}</span>
-              <span className="text-xs text-white/40 w-12 text-right">{item.percentage}%</span>
+              <span className="text-sm text-gray-900 font-bold">${item.value.toFixed(2)}</span>
+              <span className="text-xs text-gray-500 w-12 text-right">{item.percentage}%</span>
             </div>
           </div>
         ))}
+        {arcs.length === 0 && (
+          <div className="text-center text-gray-500 text-sm py-8 font-medium">
+            Waiting for live match data...
+          </div>
+        )}
       </div>
     </div>
   );
@@ -107,56 +114,53 @@ const AllocationPie = ({ data }) => {
 
 export const AllocationChart = () => {
   const [timeframe, setTimeframe] = useState('current');
+  const { portfolioPositions } = useLiveMatches();
   
+  const colors = ['#06b6d4', '#a855f7', '#34d399', '#f472b6', '#fb923c'];
+  
+  const dynamicData = portfolioPositions.map((pos, idx) => ({
+    name: pos.team,
+    value: pos.value,
+    color: colors[idx % colors.length]
+  }));
+
   const data = {
-    current: [
-      { name: 'Brazil', value: 110, color: '#06b6d4' },
-      { name: 'Morocco', value: 150, color: '#a855f7' },
-      { name: 'Scotland', value: 100, color: '#34d399' },
-      { name: 'USA', value: 80, color: '#f472b6' },
-      { name: 'Australia', value: 84.5, color: '#fb923c' }
-    ],
-    target: [
-      { name: 'Brazil', value: 60, color: '#06b6d4' },
-      { name: 'Morocco', value: 200, color: '#a855f7' },
-      { name: 'Scotland', value: 120, color: '#34d399' },
-      { name: 'USA', value: 70, color: '#f472b6' },
-      { name: 'Australia', value: 74.5, color: '#fb923c' }
-    ]
+    current: dynamicData,
+    target: dynamicData.map(d => ({ ...d, value: d.value * 1.2 })) // Just a dummy target variation for the demo toggle
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 mt-8">
+    <div className="w-full mx-auto px-4 sm:px-6 mt-8">
       {/* Section header */}
       <div className="mb-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-3">
-          <span className="text-[11px] text-white/50 font-mono tracking-wider">ALLOCATION</span>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 border border-gray-200 mb-3">
+          <span className="text-[11px] text-gray-500 font-bold tracking-wider">ALLOCATION</span>
         </div>
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white">Portfolio Distribution</h2>
-            <p className="text-white/40 text-sm mt-2">Current asset allocation by team</p>
-            <div className="w-12 h-0.5 bg-gradient-to-r from-cyan-500 to-purple-500 mt-4" />
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Portfolio Distribution</h2>
+            <p className="text-gray-500 text-sm mt-2 font-medium">Current asset allocation by team</p>
+            <div className="w-12 h-1 bg-black rounded-full mt-4" />
           </div>
           
           {/* Timeframe toggle */}
-          <div className="flex gap-1 p-1 bg-white/5 rounded-lg border border-white/10">
+          <div className="flex gap-1 p-1 bg-gray-100 rounded-lg border border-gray-200">
             <button
               onClick={() => setTimeframe('current')}
-              className={`px-4 py-1.5 rounded-md text-sm transition-all ${
+              className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all cursor-pointer ${
                 timeframe === 'current' 
-                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white' 
-                  : 'text-white/40 hover:text-white/80'
+                  ? 'bg-white shadow-sm text-gray-900' 
+                  : 'text-gray-500 hover:text-gray-900'
               }`}
             >
               Current
             </button>
             <button
               onClick={() => setTimeframe('target')}
-              className={`px-4 py-1.5 rounded-md text-sm transition-all ${
+              className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all cursor-pointer ${
                 timeframe === 'target' 
-                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white' 
-                  : 'text-white/40 hover:text-white/80'
+                  ? 'bg-white shadow-sm text-gray-900' 
+                  : 'text-gray-500 hover:text-gray-900'
               }`}
             >
               Target
@@ -166,7 +170,7 @@ export const AllocationChart = () => {
       </div>
       
       {/* Chart Card */}
-      <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
         <AllocationPie data={data[timeframe]} />
       </div>
     </div>

@@ -93,7 +93,7 @@ export const DepositModal = ({ isOpen, onClose }) => {
         
         {!isComplete ? (
           <>
-            <h2 className="text-2xl font-bold text-white mb-2">Deposit to CupFolio</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">Deposit to Touchline</h2>
             <p className="text-gray-400 text-sm mb-6">Start your World Cup portfolio journey</p>
             
             {/* Amount Input */}
@@ -158,7 +158,7 @@ export const DepositModal = ({ isOpen, onClose }) => {
               {isProcessing ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Processing on X Layer...
+                  Processing on Solana...
                 </span>
               ) : (
                 `Deposit $${amount} USDC`
@@ -176,7 +176,7 @@ export const DepositModal = ({ isOpen, onClose }) => {
         )}
         
         <p className="text-xs text-gray-500 text-center mt-4">
-          Demo Mode • Simulated transactions on X Layer
+          Demo Mode • Simulated transactions on Solana
         </p>
       </div>
     </div>

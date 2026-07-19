@@ -112,7 +112,7 @@ export const AgentTerminal = () => {
               <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
               <div className="w-3 h-3 rounded-full bg-green-500/80" />
             </div>
-            <span className="text-[10px] text-white/40 font-mono ml-2">agent@cupfolio:~/console</span>
+            <span className="text-[10px] text-white/40 font-mono ml-2">agent@Touchline:~/console</span>
           </div>
           <div className="flex items-center gap-2">
             <div className={`w-1.5 h-1.5 rounded-full ${isRunning ? 'bg-yellow-400 animate-pulse' : 'bg-emerald-400'}`} />
@@ -163,7 +163,7 @@ export const AgentTerminal = () => {
         <div className="px-5 py-3 border-t border-white/10 bg-white/5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 text-[10px] text-white/30 font-mono">
-              <span>X Layer • connected</span>
+              <span>Solana • connected</span>
               <span>Gas: 1.2 Gwei</span>
             </div>
             <button

@@ -1,5 +1,6 @@
 // src/components/layout/Sidebar.jsx
 import React, { useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   TrendingUp, 
@@ -9,16 +10,17 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Zap,
   Copy,
   Check
 } from 'lucide-react';
 import { useWallet } from '../../context/WalletContext';
+import { Logo } from '../ui/Logo';
+import { DepositModal } from '../modals/DepositModal';
 
 const navigation = [
-  { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, section: 'dashboard' },
-  { id: 'portfolio', name: 'Portfolio', icon: TrendingUp, section: 'portfolio' },
-  { id: 'transactions', name: 'Transactions', icon: Wallet, section: 'transactions' },
+  { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, path: '/' },
+  { id: 'portfolio', name: 'Portfolio', icon: TrendingUp, path: '/portfolio' },
+  { id: 'transactions', name: 'Transactions', icon: Wallet, path: '/transactions' },
 ];
 
 export const Sidebar = () => {
@@ -27,7 +29,7 @@ export const Sidebar = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [isDepositOpen, setIsDepositOpen] = useState(false);
 
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
   const toggleMobile = () => setIsMobileOpen(!isMobileOpen);
@@ -38,15 +40,6 @@ export const Sidebar = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleNavigation = (sectionId) => {
-    setActiveSection(sectionId);
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    setIsMobileOpen(false);
-  };
-
   const shortAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
 
   return (
@@ -54,111 +47,117 @@ export const Sidebar = () => {
       {/* Mobile Menu Button */}
       <button
         onClick={toggleMobile}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-white/10 backdrop-blur-xl border border-white/20"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-white shadow-sm border border-gray-200"
       >
-        {isMobileOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5 text-white" />}
+        {isMobileOpen ? <X className="w-5 h-5 text-gray-900" /> : <Menu className="w-5 h-5 text-gray-900" />}
       </button>
 
       {/* Sidebar */}
       <aside className={`
         fixed left-0 top-0 bottom-0 z-40 
-        bg-black/95 backdrop-blur-xl border-r border-white/10
-        transition-all duration-300 ease-out
+        bg-white border-r border-gray-200 shadow-sm
+        transition-all duration-300 ease-out flex flex-col
         ${isCollapsed ? 'w-20' : 'w-64'}
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         
         {/* Logo Section */}
-        <div className={`px-4 py-5 border-b border-white/10 ${isCollapsed ? 'px-2' : ''}`}>
-          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-2.5'}`}>
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0">
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            {!isCollapsed && (
-              <div>
-                <h1 className="text-base font-bold text-white">CupFolio</h1>
-                <p className="text-[10px] text-white/30">AI Portfolio Manager</p>
-              </div>
-            )}
+        <div className={`px-4 py-6 border-b border-gray-100 ${isCollapsed ? 'px-2' : ''}`}>
+          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-center'}`}>
+            <Logo className={isCollapsed ? 'w-12 h-12' : 'w-32 h-auto'} animated={false} />
           </div>
         </div>
 
         {/* Collapse Button */}
         <button
           onClick={toggleCollapse}
-          className="absolute -right-3 top-20 z-50 w-6 h-6 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+          className="absolute -right-3 top-24 z-50 w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-md hover:scale-110 transition-transform cursor-pointer"
         >
-          {isCollapsed ? <ChevronRight className="w-3.5 h-3.5 text-white" /> : <ChevronLeft className="w-3.5 h-3.5 text-white" />}
+          {isCollapsed ? <ChevronRight className="w-3.5 h-3.5 text-gray-600" /> : <ChevronLeft className="w-3.5 h-3.5 text-gray-600" />}
         </button>
 
         {/* Navigation */}
-        <nav className="px-3 py-6 space-y-1">
+        <nav className="flex-1 px-3 py-6 space-y-2">
           {navigation.map((item) => (
-            <button
+            <NavLink
               key={item.id}
-              onClick={() => handleNavigation(item.section)}
+              to={item.path}
+              onClick={() => setIsMobileOpen(false)}
               onMouseEnter={() => setHoveredItem(item.name)}
               onMouseLeave={() => setHoveredItem(null)}
-              className={`
-                relative flex items-center w-full rounded-lg text-sm transition-all duration-200
-                ${isCollapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'}
-                ${activeSection === item.section 
-                  ? 'bg-white/10 text-white' 
-                  : 'text-white/50 hover:text-white hover:bg-white/5'
+              className={({ isActive }) => `
+                relative flex items-center w-full rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer
+                ${isCollapsed ? 'justify-center px-0 py-3' : 'gap-3 px-4 py-3'}
+                ${isActive 
+                  ? 'bg-gray-100 text-gray-900 shadow-sm' 
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                 }
               `}
             >
-              {activeSection === item.section && (
-                <div className={`absolute left-0 w-0.5 h-5 bg-gradient-to-b from-cyan-500 to-purple-500 rounded-full ${isCollapsed ? 'left-0' : ''}`} />
-              )}
-              
-              <item.icon className="w-4 h-4" />
-              
-              {!isCollapsed && (
+              {({ isActive }) => (
                 <>
-                  <span className="flex-1 text-left">{item.name}</span>
+                  {isActive && (
+                    <div className={`absolute left-0 w-1 h-5 bg-black rounded-r-full ${isCollapsed ? 'left-0' : ''}`} />
+                  )}
+                  
+                  <item.icon className={`w-5 h-5 ${isActive ? 'text-black' : 'text-gray-400'}`} />
+                  
+                  {!isCollapsed && (
+                    <span className="flex-1 text-left">{item.name}</span>
+                  )}
+                  
+                  {isCollapsed && hoveredItem === item.name && (
+                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-gray-900 rounded-lg text-xs font-semibold text-white whitespace-nowrap z-50 shadow-xl">
+                      {item.name}
+                    </div>
+                  )}
                 </>
               )}
-              
-              {isCollapsed && hoveredItem === item.name && (
-                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 rounded-lg text-xs text-white whitespace-nowrap z-50 border border-white/10">
-                  {item.name}
-                </div>
-              )}
-            </button>
+            </NavLink>
           ))}
         </nav>
 
         {/* Wallet Section - Bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
-          <div className={`flex items-center w-full rounded-lg ${isCollapsed ? 'justify-center p-2' : 'gap-2.5 p-2'}`}>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
+          <div className={`flex items-center w-full rounded-xl bg-white border border-gray-200 shadow-sm ${isCollapsed ? 'justify-center p-2' : 'gap-3 p-3'}`}>
+            <div className="w-9 h-9 rounded-full bg-black flex items-center justify-center flex-shrink-0">
               <Wallet className="w-4 h-4 text-white" />
             </div>
             {!isCollapsed && (
               <>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white truncate">{shortAddress}</p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-[10px] text-white/30">{balance} X</p>
-                    <button onClick={copyAddress} className="p-0.5 rounded hover:bg-white/10 transition-colors">
-                      {copied ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5 text-white/30" />}
+                  <p className="text-sm font-semibold text-gray-900 truncate">{shortAddress}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-[11px] font-medium text-gray-500">{balance} SOL</p>
+                    <button onClick={copyAddress} className="p-0.5 rounded hover:bg-gray-100 transition-colors cursor-pointer">
+                      {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3 text-gray-400" />}
                     </button>
                   </div>
                 </div>
-                <button onClick={disconnect} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
-                  <LogOut className="w-3.5 h-3.5 text-white/40" />
+                <button onClick={disconnect} className="p-2 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer group">
+                  <LogOut className="w-4 h-4 text-gray-400 group-hover:text-red-500 transition-colors" />
                 </button>
               </>
             )}
           </div>
+          {!isCollapsed && (
+            <button 
+              onClick={() => setIsDepositOpen(true)}
+              className="w-full mt-3 py-2.5 bg-black text-white rounded-xl text-sm font-semibold shadow-sm hover:bg-gray-900 transition-colors cursor-pointer"
+            >
+              Deposit SOL
+            </button>
+          )}
         </div>
       </aside>
 
       {/* Mobile Overlay */}
       {isMobileOpen && (
-        <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setIsMobileOpen(false)} />
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 lg:hidden" onClick={() => setIsMobileOpen(false)} />
       )}
+      
+      {/* Deposit Modal */}
+      <DepositModal isOpen={isDepositOpen} onClose={() => setIsDepositOpen(false)} />
     </>
   );
 };

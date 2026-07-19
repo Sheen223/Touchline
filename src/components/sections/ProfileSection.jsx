@@ -45,7 +45,7 @@ export const ProfileSection = () => {
                 )}
                 <div className="flex items-center gap-2 mt-1">
                   <Mail className="w-3 h-3 text-white/30" />
-                  <span className="text-sm text-white/40">alex@cupfolio.io</span>
+                  <span className="text-sm text-white/40">alex@Touchline.io</span>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
                   <Calendar className="w-3 h-3 text-white/30" />

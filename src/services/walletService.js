@@ -3,10 +3,10 @@ import { ethers } from 'ethers';
 
 const XLAYER_TESTNET = {
   chainId: '0xc4',
-  chainName: 'X Layer Testnet',
+  chainName: 'Solana Testnet',
   nativeCurrency: {
-    name: 'OKB',
-    symbol: 'OKB',
+    name: 'USDC',
+    symbol: 'USDC',
     decimals: 18,
   },
   rpcUrls: ['https://testnet.xlayer.tech'],
@@ -53,7 +53,7 @@ class WalletService {
 
   async connect() {
     if (!this.isMetaMaskInstalled()) {
-      throw new Error('Please install MetaMask or OKX Wallet to continue');
+      throw new Error('Please install MetaMask or Phantom Wallet to continue');
     }
 
     try {

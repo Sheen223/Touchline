@@ -1,197 +1,84 @@
 // src/context/WalletContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useWallet as useSolanaWallet, useConnection } from '@solana/wallet-adapter-react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 
-const WalletContext = createContext();
+const CustomWalletContext = createContext();
 
 export const useWallet = () => {
-  const context = useContext(WalletContext);
+  const context = useContext(CustomWalletContext);
   if (!context) {
-    throw new Error('useWallet must be used within a WalletProvider');
+    throw new Error('useWallet must be used within a CustomWalletProvider');
   }
   return context;
 };
 
-// Get wallet provider (OKX or MetaMask)
-const getWalletProvider = () => {
-  if (typeof window === 'undefined') return null;
+export const CustomWalletProvider = ({ children }) => {
+  const { publicKey, wallet, disconnect, connecting } = useSolanaWallet();
+  const { connection } = useConnection();
+  const { setVisible } = useWalletModal();
   
-  if (window.okxwallet) {
-    return window.okxwallet;
-  }
-  if (window.ethereum) {
-    return window.ethereum;
-  }
-  return null;
-};
-
-// X Layer Network Configuration
-const XLAYER_NETWORK = {
-  chainId: '0xc4',
-  chainName: 'X Layer Mainnet',
-  nativeCurrency: {
-    name: 'OKB',
-    symbol: 'OKB',
-    decimals: 18,
-  },
-  rpcUrls: ['https://rpc.xlayer.tech'],
-  blockExplorerUrls: ['https://www.okx.com/xlayer/explorer'],
-};
-
-export const WalletProvider = ({ children }) => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [address, setAddress] = useState('');
   const [balance, setBalance] = useState('0');
-  const [chainId, setChainId] = useState(null);
-  const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState(null);
-  const [walletType, setWalletType] = useState(null);
 
-  // Check connection on page load
   useEffect(() => {
-    const checkConnection = async () => {
-      const provider = getWalletProvider();
-      if (!provider) return;
-      
-      try {
-        const accounts = await provider.request({ method: 'eth_accounts' });
-        if (accounts && accounts.length > 0) {
-          setAddress(accounts[0]);
-          setIsConnected(true);
-          
-          if (window.okxwallet && provider === window.okxwallet) {
-            setWalletType('OKX Wallet');
-          } else if (window.ethereum?.isMetaMask) {
-            setWalletType('MetaMask');
-          }
-          
-          // Get balance
-          const balanceHex = await provider.request({
-            method: 'eth_getBalance',
-            params: [accounts[0], 'latest']
-          });
-          const balanceInOKB = parseInt(balanceHex, 16) / 1e18;
-          setBalance(balanceInOKB.toFixed(4));
-          
-          // Get chain ID
-          const chainIdHex = await provider.request({ method: 'eth_chainId' });
-          setChainId(parseInt(chainIdHex, 16));
-        }
-      } catch (err) {
-        console.log("Not connected");
-      }
-    };
-    
-    checkConnection();
-  }, []);
-
-  const switchToXLayer = async () => {
-    const provider = getWalletProvider();
-    if (!provider) return false;
-    
-    try {
-      await provider.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: XLAYER_NETWORK.chainId }],
-      });
-      // Update chainId after switch
-      const chainIdHex = await provider.request({ method: 'eth_chainId' });
-      setChainId(parseInt(chainIdHex, 16));
-      return true;
-    } catch (error) {
-      if (error.code === 4902) {
-        try {
-          await provider.request({
-            method: 'wallet_addEthereumChain',
-            params: [XLAYER_NETWORK],
-          });
-          const chainIdHex = await provider.request({ method: 'eth_chainId' });
-          setChainId(parseInt(chainIdHex, 16));
-          return true;
-        } catch (addError) {
-          console.error('Failed to add network:', addError);
-          return false;
-        }
-      }
-      return false;
-    }
-  };
-
-  const connect = async () => {
-    setIsConnecting(true);
-    setError(null);
-    
-    const provider = getWalletProvider();
-    if (!provider) {
-      setError('No wallet detected. Please install OKX Wallet or MetaMask.');
-      setIsConnecting(false);
+    if (!publicKey) {
+      setBalance('0');
       return;
     }
+
+    const fetchBalance = async () => {
+      try {
+        const bal = await connection.getBalance(publicKey);
+        setBalance((bal / 1e9).toFixed(2));
+      } catch (err) {
+        console.error("Failed to fetch balance", err);
+      }
+    };
+
+    fetchBalance();
     
-    try {
-      const accounts = await provider.request({
-        method: 'eth_requestAccounts',
-      });
-      
-      if (accounts && accounts.length > 0) {
-        setAddress(accounts[0]);
-        setIsConnected(true);
-        
-        if (window.okxwallet && provider === window.okxwallet) {
-          setWalletType('OKX Wallet');
-        } else if (window.ethereum?.isMetaMask) {
-          setWalletType('MetaMask');
-        }
-        
-        const balanceHex = await provider.request({
-          method: 'eth_getBalance',
-          params: [accounts[0], 'latest']
-        });
-        const balanceInOKB = parseInt(balanceHex, 16) / 1e18;
-        setBalance(balanceInOKB.toFixed(4));
-        
-        const chainIdHex = await provider.request({ method: 'eth_chainId' });
-        const currentChainId = parseInt(chainIdHex, 16);
-        setChainId(currentChainId);
-        
-        if (currentChainId !== 196) {
-          await switchToXLayer();
-        }
-      }
-    } catch (err) {
-      console.error("Connection error:", err);
-      if (err.code === 4001) {
-        setError("Connection rejected. Please approve the request in your wallet.");
-      } else {
-        setError(err.message);
-      }
-    } finally {
-      setIsConnecting(false);
-    }
+    // Optional: Subscribe to balance changes
+    const subscriptionId = connection.onAccountChange(
+      publicKey,
+      (updatedAccountInfo) => {
+        setBalance((updatedAccountInfo.lamports / 1e9).toFixed(2));
+      },
+      'confirmed'
+    );
+
+    return () => {
+      connection.removeAccountChangeListener(subscriptionId);
+    };
+  }, [publicKey, connection]);
+
+  const connect = () => {
+    // Open the official wallet adapter modal
+    setVisible(true);
   };
 
-  const disconnect = () => {
-    setIsConnected(false);
-    setAddress('');
-    setBalance('0');
-    setError(null);
+  const handleDisconnect = async () => {
+    try {
+      await disconnect();
+    } catch (err) {
+      console.error("Disconnect error", err);
+    }
   };
 
   return (
-    <WalletContext.Provider
+    <CustomWalletContext.Provider
       value={{
-        isConnected,
-        address,
+        isConnected: !!publicKey,
+        address: publicKey ? publicKey.toString() : '',
         balance,
-        chainId,
-        isConnecting,
+        isConnecting: connecting,
         error,
-        walletType,
+        walletType: wallet?.adapter?.name || null,
         connect,
-        disconnect,
-        switchToXLayer,
+        disconnect: handleDisconnect,
       }}
     >
       {children}
-    </WalletContext.Provider>
+    </CustomWalletContext.Provider>
   );
-};
+};

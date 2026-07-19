@@ -1,7 +1,7 @@
 // src/config/contract.js
-export const CUPFOLIO_HOOK_ADDRESS = "0x3C39ee3BC1c49f9323cEE20EE736e84A6b831d61";
+export const Touchline_HOOK_ADDRESS = "0x3C39ee3BC1c49f9323cEE20EE736e84A6b831d61";
 
-export const CUPFOLIO_HOOK_ABI = [
+export const Touchline_HOOK_ABI = [
   "function aiAgent() view returns (address)",
   "function setAIAgent(address _aiAgent) external",
   "function updateUpsetProbability(address poolAddress, uint8 probability) external returns (uint24)",

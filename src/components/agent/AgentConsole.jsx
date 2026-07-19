@@ -107,7 +107,7 @@ export const AgentConsole = () => {
     addLog('Initializing neural network analysis...', 'info');
     
     await new Promise(r => setTimeout(r, 600));
-    addLog('Fetching match results from X Layer oracle...', 'info');
+    addLog('Fetching match results from Solana oracle...', 'info');
     
     await new Promise(r => setTimeout(r, 800));
     addLog('⚠️ Brazil 1 - 2 Morocco [SHOCK UPSET DETECTED]', 'alert');
@@ -125,7 +125,7 @@ export const AgentConsole = () => {
     addLog('  Morocco: 62% → 81% (+19% surge)', 'change', '+$40');
     
     await new Promise(r => setTimeout(r, 800));
-    addLog('🔄 Executing portfolio rebalance on X Layer...', 'action');
+    addLog('🔄 Executing portfolio rebalance on Solana...', 'action');
     addLog('  • SELL $60 Brazil YES position', 'trade', '-$60');
     addLog('  • BUY $40 Morocco YES position', 'trade', '+$40');
     addLog('  • BUY $20 Scotland YES position', 'trade', '+$20');
@@ -154,7 +154,7 @@ export const AgentConsole = () => {
             </div>
             <div className="flex items-center gap-2">
               <Terminal className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="text-[10px] text-white/40 font-mono tracking-wide">agent@cupfolio:~/console</span>
+              <span className="text-[10px] text-white/40 font-mono tracking-wide">agent@Touchline:~/console</span>
             </div>
           </div>
           
@@ -239,7 +239,7 @@ export const AgentConsole = () => {
         <div className="border-t border-white/10 px-4 py-3 bg-white/5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 text-[10px] text-white/30 font-mono">
-              <span>X Layer: connected</span>
+              <span>Solana: connected</span>
               <span>Gas: 1.2 Gwei</span>
               <span>Block: 61,124,668</span>
             </div>

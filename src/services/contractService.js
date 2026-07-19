@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
-import { CUPFOLIO_HOOK_ADDRESS, CUPFOLIO_HOOK_ABI } from "../config/contract";
+import { Touchline_HOOK_ADDRESS, Touchline_HOOK_ABI } from "../config/contract";
 
 export const getContract = (signerOrProvider) => {
-  return new ethers.Contract(CUPFOLIO_HOOK_ADDRESS, CUPFOLIO_HOOK_ABI, signerOrProvider);
+  return new ethers.Contract(Touchline_HOOK_ADDRESS, Touchline_HOOK_ABI, signerOrProvider);
 };
 
 // Get upset probability for a pool

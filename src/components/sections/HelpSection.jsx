@@ -5,7 +5,7 @@ import { Search, BookOpen, Video, MessageCircle, Mail, ChevronDown, ChevronUp, E
 const faqs = [
   { q: 'How does the AI agent work?', a: 'The AI agent analyzes real-time match data, updates qualification probabilities, and automatically rebalances your portfolio to maximize returns.' },
   { q: 'What strategies are available?', a: 'We offer Balanced, Aggressive, and Conservative strategies to match your risk tolerance.' },
-  { q: 'How is yield generated?', a: 'Idle capital is deployed to lending protocols on X Layer, earning APY while waiting for trading opportunities.' },
+  { q: 'How is yield generated?', a: 'Idle capital is deployed to lending protocols on Solana, earning APY while waiting for trading opportunities.' },
   { q: 'Are funds safe?', a: 'All positions are managed through audited smart contracts. You retain full control of your assets.' }
 ];
 
